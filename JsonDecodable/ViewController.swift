@@ -33,35 +33,29 @@ class ViewController: UIViewController {
         ])
     }
     func fetchData() {
-        let urlString = "https://jsonplaceholder.typicode.com/todos"
-        if let url = URL(string: urlString) {
-            URLSession.shared.dataTask(with: url) { data, response, error in
-                if let error = error {
+        let urlString = "https://jsonplaceholder.typicode.com/todos/1"
+        guard let url = URL(string: urlString) else {
+            print("oshibka nevernyi url")
+            return
+        }
+        URLSession.shared.dataTask(with: url) { data, response, error in
+              if let error = error {
                     print("error:\(error.localizedDescription)")
                     return
                 }
-                if let data = data {
-                    do {
-                        if let jsonObject = try JSONSerialization.jsonObject(with: data,
-                                                                             options: []) as? [String: Any] {
-                            if let userId = jsonObject["userId"] as? Int,
-                               let id = jsonObject["id"] as? Int,
-                               let title = jsonObject["title"] as? String,
-                               let completed = jsonObject["completed"] as? Bool {
-                                let todo = Todo(userId: userId, id: id, title: title, completed: completed)
-                                DispatchQueue.main.async {
-                                    self.titleLabel.text = todo.title
-                                }
-                            }
-                        }
-                    } catch {
-                        print("Error")
-                    }
+                guard let data = data else {
+                    print("Error dannye otsutstvuyut")
+                    return
                 }
-            }.resume()
-        }
-        
+            do {
+                let todo = try JSONDecoder().decode(Todo.self, from: data)
+                DispatchQueue.main.async {
+                    self.titleLabel.text = todo.title
+                }
+            } catch {
+                print("error")
+            }
+            
+        }.resume()
     }
-
 }
-
